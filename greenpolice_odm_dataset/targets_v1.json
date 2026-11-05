@@ -1,0 +1,44 @@
+{
+  "id": "EWADS-targets-v1",
+  "status_note": "DRAFT until frozen with tools/freeze_targets.py. Review every number, change what you disagree with, THEN freeze -- before any model is trained or evaluated on test. After freezing, a change needs a new file (targets_v2.json) and the report will show both.",
+  "rationale": "The brief's single 'mAP@0.5:0.95 >= 0.68' mixes two jobs with different physics. Survey frames (high, fast, Jetson, INT8) must FIND dump sites. Evidence frames (low, offline ensemble + TTA + multi-view on the RTX 5090) must LOCALISE and CLASSIFY objects well enough for a report. mAP@0.5:0.95 punishes 1-px box errors on small objects, so it is only demanded where objects are >= 32 px. The 0.87 recall applies to the toxic (tier-1) classes, where a miss matters most. 'FP < 0.05' is read as FP/(TP+FP) at the operating threshold fixed on VAL.",
+  "operating_threshold": "Chosen on VAL (08 --calibrate or 11's stage_thresholds.json) and passed with --conf to the TEST run. Never chosen on test.",
+  "site_definition": {
+    "link_m": 3.0,
+    "link_px_if_no_altitude": 60,
+    "margin_px": 4,
+    "note": "Objects closer than link_m form one site; a site is found if any detection touches any of its objects; nearby false detections count as one false alert."
+  },
+  "sections": {
+    "evidence": {
+      "scope": "Output of 11_evidence_pipeline.py (final stage) on evidence-pass frames",
+      "altitude_m": [0, 15],
+      "targets": [
+        {"id": "E1", "metric": "map5095", "level": "fine", "min_px": 32, "op": ">=", "value": 0.68,
+         "why": "localisation + classification where objects are clearly resolvable"},
+        {"id": "E2", "metric": "map50", "level": "fine", "min_px": 16, "op": ">=", "value": 0.85,
+         "why": "detection + classification across the whole assessable envelope"},
+        {"id": "E3", "metric": "recall", "level": "fine", "classes": "tier1", "min_px": 16, "op": ">=", "value": 0.87,
+         "why": "toxic classes: a miss is the costly error"},
+        {"id": "E4", "metric": "fp_share", "level": "fine", "min_px": 16, "op": "<", "value": 0.05,
+         "why": "brief's FP < 0.05, at the same threshold as E3"}
+      ]
+    },
+    "survey": {
+      "scope": "Jetson live output (07 / 08 --engine) on survey frames",
+      "altitude_m": [15, 1000],
+      "targets": [
+        {"id": "S1", "metric": "site_recall", "op": ">=", "value": 0.95,
+         "why": "every dump site must trigger an evidence pass"},
+        {"id": "S2", "metric": "false_alerts_per_frame", "op": "<", "value": 0.05,
+         "why": "< 1 false alert per 20 processed frames keeps the pilot trusting alerts"}
+      ]
+    }
+  },
+  "report_only": [
+    "all-object mAP@0.5:0.95 and mAP@0.5 (no size limit), fine level",
+    "group- and binary-level mAP",
+    "mAP by altitude band x object size",
+    "per-class AP and recall"
+  ]
+}

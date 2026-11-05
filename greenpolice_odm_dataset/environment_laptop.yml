@@ -1,0 +1,54 @@
+# EWADS Conda Environment — LAPTOP profile (RTX 3060 8GB, Ampere/sm_86)
+# Usage: conda env create -f environment_laptop.yml -n ewads-laptop
+#        conda activate ewads-laptop
+#
+# For the workstation (RTX 5090, Blackwell), use environment.yml instead.
+# This file's older, lighter CUDA toolkit is intentional here — the laptop
+# doesn't need the Blackwell-specific build, and forcing CUDA 12.8 +
+# torch 2.7 here buys nothing while adding install fragility on Ampere.
+#
+# Give the two environments DIFFERENT conda env names (ewads-laptop vs
+# ewads) so you can have both active on machines that sync the same repo,
+# and so a `conda activate ewads` habit on the workstation never
+# accidentally picks up the laptop's older CUDA build.
+
+name: ewads-laptop
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.10
+  - pip
+
+  - pytorch::pytorch=2.4.*
+  - pytorch::torchvision=0.19.*
+  - pytorch::pytorch-cuda=12.1
+
+  - pip:
+    - ultralytics>=8.3.0
+    - blenderproc>=2.7.0
+    - objaverse>=0.1.7
+    - trimesh>=4.0.0
+    - albumentations>=1.4.0
+    - opencv-python-headless>=4.9.0
+    - pillow>=10.0.0
+    - onnx>=1.16.0
+    - onnxruntime-gpu>=1.18.0
+    - onnxsim>=0.4.36
+    - torch-pruning>=1.4.0
+    - pymavlink>=2.4.40
+    - tqdm>=4.66.0
+    - pyyaml>=6.0.1
+    - numpy>=1.26.0
+    - matplotlib>=3.8.0
+    - pandas>=2.2.0
+    - scipy>=1.12.0
+    - jsonlines>=4.0.0
+
+# The laptop's job in the new hardware plan is entirely data-side now:
+# BlenderProc rendering, Objaverse fetching, AdaIN training/inference,
+# Albumentations. It never touches RT-DETR-L training or QAT again —
+# those move to the workstation. Keep this environment lean.

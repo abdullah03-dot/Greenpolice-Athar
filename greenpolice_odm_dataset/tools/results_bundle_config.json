@@ -1,0 +1,33 @@
+{
+  "_note": "Where tools/export_results_bundle.py finds each input (paths relative to the project root). These are the output paths of the Task 8 final-evaluation commands in HANDOFF §21; change them here if you ran with others. A missing input is reported as NOT RUN, never filled in.",
+  "targets": "targets_v2.json",
+  "freeze_record": "results_bundle/freeze_record.txt",
+  "evals": [
+    {"name": "synthetic_heldout_single_model", "hypothesis": "H1", "report": "eval/final/synthetic_heldout/eval_report.json"},
+    {"name": "synthetic_heldout_evidence_pipeline", "hypothesis": "H1", "report": "eval/final/synthetic_heldout_evidence/eval_report.json"},
+    {"name": "loeo_desert", "hypothesis": "H1", "fold": true, "report": "eval/final/loeo_desert/eval_report.json"},
+    {"name": "loeo_european_urban", "hypothesis": "H1", "fold": true, "report": "eval/final/loeo_european_urban/eval_report.json"},
+    {"name": "loeo_european_rural", "hypothesis": "H1", "fold": true, "report": "eval/final/loeo_european_rural/eval_report.json"},
+    {"name": "real_test_best_model", "hypothesis": "H1", "report": "eval/final/real_test_best/eval_report.json"},
+    {"name": "real_test_zero_shot_baseline", "hypothesis": "H1-baseline", "report": "eval/final/real_test_zeroshot/eval_report.json"},
+    {"name": "synthetic_heldout_zero_shot_baseline", "hypothesis": "H1-baseline", "report": "eval/final/synthetic_heldout_zeroshot/eval_report.json"}
+  ],
+  "decision_records": {
+    "adain_no": "eval/val_A_noadain/eval_report.json",
+    "adain_yes": "eval/val_A_adain/eval_report.json",
+    "ablation_camera": "results_bundle/ablation_camera.json",
+    "engine_decision": "runs/jetson/engine_decision.json",
+    "jetson_benchmark": "runs/jetson/benchmark_report.json"
+  },
+  "h2": "results_bundle/h2_gsd.json",
+  "h2_figure": "results_bundle/h2_gsd_scatter.png",
+  "h3": "results_bundle/h3_tamper.json",
+  "dataset_stats": "results_bundle/dataset_stats.json",
+  "split_manifest": "data/splits/split_manifest.json",
+  "figures": {
+    "synthetic_heldout_dir": "data/splits/main/heldout",
+    "real_test": {"data_dir": "data/test", "cache": "eval/final/real_test_best/detections.npz",
+                  "report": "eval/final/real_test_best/eval_report.json", "heights_csv": "data/test/heights.csv"},
+    "evidence_crops_glob": "abl/real_evidence/*/review_crops/*.png"
+  }
+}

@@ -1,0 +1,11 @@
+ATHAR pre-registered targets -- freeze record
+targets file      : targets_v2.json
+targets sha256    : a372e8d5be16a1bb956ff75b5fe0c10de7b6f43761e660911d9f0cd228cf4afe
+taxonomy sha256   : 603a945003b19afbed5e13e074aa1aafc8371ca8f0e7044c2d5f39b006ecead5  (ewads_taxonomy.py: tier-1 classes)
+frozen (UTC)      : 2026-10-14T21:18:29.049869+00:00
+frozen by         : A. Shabbir Ali
+note              : synthetic-only regime; before any training or evaluation
+lock file sha256  : a6143c2b0a60174ae4e6648504be81b37e33ba12d7b41408f149979073572807
+
+Record the targets sha256 OUTSIDE this folder (email to supervisor / git commit / timestamp service):
+the lock on disk alone proves nothing. Any change after this point needs targets_v3.json.

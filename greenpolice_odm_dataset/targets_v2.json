@@ -1,0 +1,143 @@
+{
+  "id": "ATHAR-targets-v2",
+  "schema_version": 2,
+  "status_note": "DRAFT -- PROPOSED VALUES, NOT FROZEN. Review every number, change what you disagree with, then freeze with tools/freeze_targets.py --targets targets_v2.json BEFORE any model is trained or evaluated. After freezing, any change needs targets_v3.json and both are reported.",
+  "supersedes": "targets_v1.json (v1 assumed real labelled training data; this project is now synthetic-only for training)",
+  "regime": "Training, calibration and model selection use SYNTHETIC data only. Real imagery is used only as (a) unlabelled ground-texture style photos for the AdaIN arm and (b) the held-out real test set of staged scenes photographed from measured heights (8-25 m), plus 1 m reference-target photos.",
+  "rationale": "v1 split the brief's single 'mAP@0.5:0.95 >= 0.68' into evidence (low, offline, objects >= 32 px) and survey (site finding) targets. v2 keeps those for held-out SYNTHETIC scenes, adds a sim-to-sim generalisation check (leave-one-environment-out) and a sim-to-real check on the real staged test set with metrics that a synthetic-only detector can be honestly held to, and adds the two non-detection hypotheses: H2 (ground-sampling-distance / assessability geometry) and H3 (tamper evidence of the audit log).",
+  "decisions": {
+    "tier1_classes": ["battery", "circuit_board", "crt_monitor"],
+    "lighting_not_tier1": "lighting is NOT tier-1 (decided 2026-10-08). Fluorescent tubes and CFLs contain mercury, but the 'lighting' class does not separate them from incandescent and LED bulbs, and most reviewed lighting models are ordinary bulbs. Putting the class in tier-1 would mix non-hazardous bulbs into the tier-1 recall target. lighting recall is reported per class in every evaluation; a dedicated 'mercury_lamp' class would be the way to add it to tier-1 in a later version.",
+    "tier1_source": "ewads_taxonomy.TIER_1 (the freeze lock also hashes ewads_taxonomy.py)"
+  },
+  "operating_threshold": "Chosen on SYNTHETIC validation only (08 --calibrate on the synthetic validation split, or 11's stage_thresholds.json from a synthetic validation sequence) and passed with --conf to every other evaluation, including the real test set. Never chosen on any test set.",
+  "iou_note": "recall / fp_share / precision use IoU 0.5 (ewads_metrics.operating_point default). map50 = AP at IoU 0.5; map5095 = COCO AP averaged over IoU 0.50:0.95.",
+  "size_note": "min_px = object long side in native pixels; smaller objects are COCO-style ignored (neither TP nor FN, detections on them not FP).",
+  "site_definition": {
+    "link_m": 3.0,
+    "link_px_if_no_altitude": 60,
+    "margin_px": 4,
+    "note": "Objects closer than link_m form one site; a site is found if any detection touches any of its objects; nearby false detections count as one false alert."
+  },
+  "sections": {
+    "synthetic_heldout.evidence": {
+      "dataset": "synthetic_heldout",
+      "evaluated_by": "08_tiled_eval.py",
+      "scope": "Held-out synthetic validation-of-record scenes (split by scene, never by tile), altitude 0-15 m, scored on 11_evidence_pipeline.py final-stage output (08 --cache); the single-model 08 result is reported alongside",
+      "altitude_m": [0, 15],
+      "targets": [
+        {"id": "E1", "metric": "map5095", "level": "fine", "min_px": 32, "op": ">=", "value": 0.68,
+         "scope": "held-out synthetic, 0-15 m, objects >= 32 px",
+         "why": "v1 E1 unchanged: the brief's 0.68, demanded only where objects are clearly resolvable (a 1-px box error on a 16 px object already fails IoU 0.80)."},
+        {"id": "E2", "metric": "map50", "level": "fine", "min_px": 16, "op": ">=", "value": 0.85,
+         "scope": "held-out synthetic, 0-15 m, objects >= 16 px",
+         "why": "v1 E2 unchanged: detection + classification across the whole assessable envelope."},
+        {"id": "E3", "metric": "recall", "level": "fine", "classes": "tier1", "min_px": 16, "op": ">=", "value": 0.87,
+         "scope": "held-out synthetic, 0-15 m, tier-1 classes, objects >= 16 px, IoU 0.5",
+         "why": "v1 E3 unchanged: the brief's 0.87 recall, applied to the toxic classes where a miss is the costly error."},
+        {"id": "E4", "metric": "fp_share", "level": "fine", "min_px": 16, "op": "<", "value": 0.05,
+         "scope": "held-out synthetic, 0-15 m, objects >= 16 px, same threshold as E3",
+         "why": "v1 E4 unchanged: the brief's FP < 0.05 read as FP/(TP+FP) at the operating threshold."}
+      ]
+    },
+    "synthetic_heldout.survey": {
+      "dataset": "synthetic_heldout",
+      "evaluated_by": "08_tiled_eval.py",
+      "scope": "Held-out synthetic scenes at survey altitude (>= 15 m), single tiled model (07/08 path, the model that will run on the Jetson)",
+      "altitude_m": [15, 1000],
+      "targets": [
+        {"id": "S1", "metric": "site_recall", "op": ">=", "value": 0.95,
+         "scope": "held-out synthetic, >= 15 m, class-agnostic sites",
+         "why": "v1 S1 unchanged: every dump site must trigger an evidence pass."},
+        {"id": "S2", "metric": "false_alerts_per_frame", "op": "<", "value": 0.05,
+         "scope": "held-out synthetic, >= 15 m",
+         "why": "v1 S2 unchanged: < 1 false alert per 20 processed frames keeps the pilot trusting alerts."}
+      ]
+    },
+    "sim_to_sim_loeo": {
+      "dataset": "sim_to_sim_loeo",
+      "evaluated_by": "08_tiled_eval.py",
+      "scope": "Leave-one-environment-out: train on two of {desert, european_urban, european_rural}, test on the held-out environment's scenes, all altitudes, single tiled model. Scored separately for each of the 3 folds; EVERY fold must pass. Report all three values and the minimum.",
+      "aggregate": "each_fold",
+      "targets": [
+        {"id": "L1", "metric": "map50", "level": "fine", "min_px": 16, "op": ">=", "value": 0.70,
+         "scope": "held-out environment, all altitudes, objects >= 16 px",
+         "why": "PROPOSAL. LOEO changes only ground textures, clutter density, sky and lighting statistics; objects, camera geometry and renderer are identical. A generalising model should therefore lose little against the in-distribution E2 level (0.85). 0.70 allows a ~15-point drop: a larger drop means the model is keying on background statistics, which would also predict a large sim-to-real loss."},
+        {"id": "L2", "metric": "recall", "level": "fine", "classes": "tier1", "min_px": 16, "op": ">=", "value": 0.80,
+         "scope": "held-out environment, all altitudes, tier-1, objects >= 16 px, IoU 0.5",
+         "why": "PROPOSAL. Tier-1 recall should degrade less than fine-class AP under a pure background shift (the objects themselves are unchanged); 0.80 is 7 points under E3's 0.87."},
+        {"id": "L3", "metric": "recall", "level": "binary", "min_px": 16, "op": ">=", "value": 0.85,
+         "scope": "held-out environment, all altitudes, any e-waste, objects >= 16 px, IoU 0.5",
+         "why": "PROPOSAL. 'Is it e-waste at all' is the least appearance-sensitive question; class confusions do not count against it."},
+        {"id": "L4", "metric": "fp_share", "level": "fine", "min_px": 16, "op": "<", "value": 0.10,
+         "scope": "held-out environment, all altitudes, objects >= 16 px",
+         "why": "PROPOSAL. Unseen clutter and ground textures are the main source of new false positives under environment shift; twice E4's 0.05 is allowed."}
+      ]
+    },
+    "sim_to_real": {
+      "dataset": "sim_to_real",
+      "evaluated_by": "08_tiled_eval.py",
+      "scope": "Real held-out test set: staged e-waste scenes photographed from measured heights of 8-25 m (from buildings), phone and/or Phantom 4 Pro camera. Never used for training, calibration, model selection or threshold choice. Threshold = the one fixed on synthetic validation.",
+      "altitude_m": [7, 26],
+      "altitude_note": "[7, 26) m so that frames measured at 8 m and 25 m (with tape / laser uncertainty) are inside the scope; altitude = measured camera height above the ground plane (heights.csv), not GPS altitude.",
+      "targets": [
+        {"id": "R1", "metric": "recall", "level": "fine", "classes": "tier1", "min_px": 16, "op": ">=", "value": 0.60,
+         "scope": "real test set, tier-1 classes, objects >= 16 px, IoU 0.5, synthetic-calibrated threshold",
+         "why": "PROPOSAL. A detector trained only on renders loses on real imagery (sensor noise and ISP processing, real wear and dirt, real illumination, materials the renderer approximates). Published synthetic-only / domain-randomisation detection studies report real-data performance well below in-domain performance, with the gap depending strongly on rendering realism. Holding the synthetic-only model to v1's 0.87 would test a regime the brief did not assume (real training data). 0.60 is ~70% of the synthetic E3 target: high enough that the method is useful as a screening tool, low enough to be a fair test of synthetic-only training."},
+        {"id": "R2", "metric": "recall", "level": "binary", "min_px": 16, "op": ">=", "value": 0.75,
+         "scope": "real test set, any e-waste, objects >= 16 px, IoU 0.5",
+         "why": "PROPOSAL. Binary recall does not penalise class confusions, which are the part of the sim-to-real gap most sensitive to texture and material appearance; it should therefore sit above tier-1 fine recall (R1)."},
+        {"id": "R3", "metric": "site_recall", "op": ">=", "value": 0.85,
+         "scope": "real test set, class-agnostic sites (link 3 m via measured height)",
+         "why": "PROPOSAL. A site needs only one of its objects found, so site recall is the most robust real-world number; 0.85 is 10 points under the synthetic S1 (0.95) to allow for the domain gap."},
+        {"id": "R4", "metric": "false_alerts_per_frame", "op": "<", "value": 0.30,
+         "scope": "real test set, class-agnostic",
+         "why": "PROPOSAL. Real scenes shot from buildings contain clutter never rendered (vehicles, street furniture, signage, litter). Fewer than 1 false alert per ~3 frames is set as the ceiling for a usable screening tool; this is deliberately looser than S2 (0.05) because the synthetic clutter set cannot cover real urban clutter."},
+        {"id": "R5", "metric": "map50", "level": "fine", "min_px": 16, "op": ">=", "value": 0.40,
+         "scope": "real test set, objects >= 16 px",
+         "why": "PROPOSAL. Fine-class AP is the metric most exposed to the appearance gap, so it gets the largest allowance (~47% of E2's 0.85). mAP@.5:.95 is deliberately NOT targeted on real data: it rewards pixel-exact boxes, and annotation noise on a few hundred staged real objects would dominate it; it is reported only."}
+      ]
+    },
+    "h2_gsd": {
+      "dataset": "h2_reference_target",
+      "evaluated_by": "tools/gsd_validation.py",
+      "scope": "Photos of a 1 m reference target from each measured height (phone and/or Phantom 4 Pro). Predicted pixel length from height + camera geometry (ewads_survey camera profile or EXIF focal length) vs pixel length measured from the annotated target endpoints.",
+      "targets": [
+        {"id": "H2", "metric": "abs_rel_error", "aggregate": "p95", "op": "<=", "value": 0.10,
+         "scope": "all reference-target photos; |predicted - measured| / measured pixel length of the 1 m target; 95th percentile over images",
+         "why": "PROPOSAL. The assessability gate (an object is assessable if its long side >= 16 px) inherits the GSD error directly: a 10% length error moves the gate by 1.6 px, i.e. a class's maximum assessable altitude by 10%. Expected error sources at 8-25 m: measured-height uncertainty (a few cm to ~0.2 m, i.e. ~1-2%), endpoint annotation (+-1 px on a target that spans roughly 40-500 px), lens distortion away from the image centre, and for phones the EXIF focal length / 35 mm-equivalent rounding. 10% at p95 tolerates these and a few outliers while still rejecting a wrong camera model (e.g. an unmodelled video sensor crop on the Phantom 4 Pro would show up as a systematic ~10-30% error). Median and max are reported as well."}
+      ]
+    },
+    "h3_tamper": {
+      "dataset": "h3_tamper_trials",
+      "evaluated_by": "tools/tamper_experiment.py",
+      "scope": "N = 200 trials per tamper type on a hash-chained audit log (07/11 format). Check levels: 'chain' = verify_chain() alone; 'chain+head' = plus Ed25519-signed chain-head verification; 'chain+head+rehash' = plus re-hashing the source media referenced by each record. Threat model: the attacker can edit the log and media files but does NOT hold the signing key.",
+      "targets": [
+        {"id": "T1", "metric": "detection_rate", "tamper": "field_edit", "check": "chain", "op": ">=", "value": 1.0,
+         "scope": "edit any field of one record", "why": "Each record's hash covers its content; an edit breaks that record's hash."},
+        {"id": "T2", "metric": "detection_rate", "tamper": "reorder", "check": "chain", "op": ">=", "value": 1.0,
+         "scope": "swap two records", "why": "prev_hash links fix the order; a swap breaks a link."},
+        {"id": "T3", "metric": "detection_rate", "tamper": "insert", "check": "chain", "op": ">=", "value": 1.0,
+         "scope": "insert a forged record mid-chain", "why": "The forged record cannot carry the correct prev_hash AND be the prev of the next record without rewriting the rest of the chain."},
+        {"id": "T4", "metric": "detection_rate", "tamper": "middle_deletion", "check": "chain", "op": ">=", "value": 1.0,
+         "scope": "delete a record that is not the last", "why": "Added beyond the brief's list: deleting a middle record breaks the next record's prev_hash link, so the chain alone must catch it."},
+        {"id": "T5", "metric": "detection_rate", "tamper": "source_swap", "check": "chain+head+rehash", "op": ">=", "value": 1.0,
+         "scope": "replace the media file under a record, log untouched", "why": "The log is intact, so only re-hashing the media against the recorded image_sha256 can catch it."},
+        {"id": "T6", "metric": "detection_rate", "tamper": "tail_truncation", "check": "chain+head", "op": ">=", "value": 1.0,
+         "scope": "drop the last k records", "why": "A truncated chain is still internally valid; only the signed head (record count + last hash) reveals it. Chain-only detection is EXPECTED to be ~0 and is reported, not targeted."},
+        {"id": "T7", "metric": "detection_rate", "tamper": "full_rebuild", "check": "chain+head", "op": ">=", "value": 1.0,
+         "scope": "edit a record and recompute every hash after it", "why": "A rebuilt chain is internally valid; only the signed head's last hash reveals it (the attacker cannot re-sign without the key). Chain-only detection is EXPECTED to be ~0 and is reported, not targeted."}
+      ]
+    }
+  },
+  "report_only": [
+    "all-object mAP@0.5:0.95 and mAP@0.5 (no size limit), fine level, every dataset",
+    "group- and binary-level mAP, every dataset",
+    "mAP by altitude band x object size",
+    "per-class AP, recall and instance count n (incl. lighting recall)",
+    "bootstrap 95% confidence intervals (image-level, 1,000 resamples) for every targeted metric",
+    "real test set: mAP@0.5:0.95 (not targeted, see R5)",
+    "zero-shot baseline (YOLO-World) on synthetic held-out and real test, same metrics",
+    "H3 chain-only detection rate for tail_truncation and full_rebuild (expected ~0)"
+  ]
+}

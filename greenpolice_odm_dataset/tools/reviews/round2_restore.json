@@ -1,0 +1,9 @@
+{
+  "_note": "Round 2 (2026-09-27): round-1 rejects re-checked with correct textures; these were wrongly rejected or belong in another class.",
+  "index": "assets/models/_review_rejected_v2/index.json",
+  "source_dir": "assets/models/_rejected",
+  "move": [["cpu_chip", 1, "circuit_board"], ["cpu_chip", 3, "circuit_board"],
+           ["cpu_chip", 6, "power_supply"], ["cpu_chip", 2, "small_appliance"],
+           ["plastic_casing", 3, "circuit_board"], ["single_cable", 11, "small_appliance"],
+           ["keyboard", 4, "keyboard"], ["crt_monitor", 1, "crt_monitor"]]
+}

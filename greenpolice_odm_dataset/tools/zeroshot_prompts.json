@@ -1,0 +1,23 @@
+{
+  "_note": "One natural-language prompt per EWADS class for the YOLO-World zero-shot baseline (tools/zeroshot_baseline.py). Keys MUST be exactly ewads_taxonomy.CLASSES (order does not matter here; the tool orders them). DRAFT 2026-10-08 -- review before the first run; the prompts file's SHA-256 is recorded with every run, so changing it after seeing results is visible.",
+  "prompts": {
+    "crt_monitor": "old CRT computer monitor or tube television",
+    "flat_screen": "flat screen computer monitor or LCD television",
+    "circuit_board": "electronic circuit board",
+    "battery": "battery",
+    "cable_bundle": "bundle of tangled electrical cables",
+    "single_cable": "single electrical cable",
+    "mobile_phone": "mobile phone",
+    "keyboard": "computer keyboard",
+    "printer": "printer",
+    "small_appliance": "small household appliance such as a toaster, kettle, fan or radio",
+    "large_appliance": "large household appliance such as a washing machine or refrigerator",
+    "cpu_chip": "computer processor chip",
+    "hard_drive": "computer hard disk drive",
+    "power_supply": "computer power supply unit or power adapter",
+    "ewaste_pile": "pile of electronic waste",
+    "plastic_casing": "plastic computer case or device housing",
+    "metal_component": "metal computer part, heat sink or bracket",
+    "lighting": "light bulb or fluorescent tube"
+  }
+}

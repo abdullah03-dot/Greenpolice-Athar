@@ -1,0 +1,136 @@
+# EWADS Conda Environment — WORKSTATION profile (RTX 5090, Blackwell/sm_120)
+# Usage: conda env create -f environment.yml
+# Then:  conda activate ewads
+#
+# FIXED: conda's `pytorch` channel does not yet publish a `pytorch-cuda=12.8`
+# metapackage build in most channel snapshots — this is a real gap in what
+# conda currently distributes for Blackwell, not a version-number typo. The
+# earlier version of this file (dependencies: pytorch-cuda=12.8) failed with:
+#   PackagesNotFoundError: ... pytorch-cuda=12.8
+#
+# FIX: install PyTorch via pip from PyTorch's own CUDA 12.8 wheel index
+# instead of through conda. This is what PyTorch's own install matrix
+# recommends right now for RTX 50-series (Blackwell) — pip wheels track new
+# CUDA versions faster than conda channels do. Conda still manages the
+# Python interpreter and everything else; only torch/torchvision move to pip.
+#
+# REQUIRES: NVIDIA driver >= 570.x (CUDA 12.8 minimum driver requirement).
+# Check with `nvidia-smi` BEFORE running this — if the driver is older,
+# update it first, or the wheel installs but still can't see the GPU.
+#
+# For the laptop (RTX 3060, Ampere/sm_86), use environment_laptop.yml instead
+# — that one keeps the conda pytorch-cuda=12.1 path, which is fine on Ampere
+# and does not need this pip workaround.
+#
+# VERIFY IMMEDIATELY AFTER INSTALL:
+#   python -c "
+#   import torch
+#   print('torch:', torch.__version__)
+#   print('cuda available:', torch.cuda.is_available())
+#   print('capability:', torch.cuda.get_device_capability(0))
+#   x = torch.randn(1024,1024,device='cuda') @ torch.randn(1024,1024,device='cuda')
+#   torch.cuda.synchronize()
+#   print('kernel launch OK')
+#   "
+#   Expected: torch >= 2.7.0, capability (12, 0), no errors.
+#   If torch.__version__ comes back old or CPU-only, the cu128 index wasn't
+#   actually used — re-run the pip install line by hand and check its output
+#   for which wheel it resolved.
+
+name: ewads
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.10
+  - pip
+
+  - pip:
+    # ── PyTorch — installed from the CUDA 12.8 wheel index, NOT conda ──────
+    # pip's --index-url can't be expressed inside a conda environment.yml
+    # pip section in a way every conda version parses reliably, so this file
+    # documents the two-step process; DO NOT rely on a plain `torch` pip
+    # entry below to pick up cu128 automatically — it will not, and will
+    # silently install a CPU or older-CUDA wheel instead. Run the following
+    # by hand AFTER `conda env create -f environment.yml` finishes:
+    #
+    #   conda activate ewads
+    #   pip uninstall -y torch torchvision
+    #   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+    #
+    # The uninstall is required: ultralytics below pulls in a torch from PyPI
+    # during env creation (CPU-only on Windows). Without it, the cu128 command
+    # reports "Requirement already satisfied" and keeps that build.
+    #
+    # Everything below this line installs fine as normal pip packages and
+    # does not depend on the CUDA wheel index.
+
+    # Detection framework — pin recent; older releases can bundle CUDA
+    # extension wheels built before Blackwell existed
+    - ultralytics>=8.3.0
+
+    # BlenderProc (laptop-side pipeline stages; harmless to have here too)
+    - blenderproc>=2.7.0
+
+    # Objaverse model fetching
+    - objaverse>=0.1.7
+    - trimesh>=4.0.0
+
+    # Augmentation
+    - "albumentations>=2.0,<3"   # 03 uses the 2.x API; 1.x names crash or are silently ignored
+    - opencv-python-headless>=4.9.0
+    - pillow>=10.0.0
+
+    # ONNX — CUDAExecutionProvider on Blackwell needs a recent onnxruntime-gpu.
+    # If validate_onnx() in 06_compress_export.py falls back silently to
+    # CPUExecutionProvider, that's this package being too old, not an error
+    # in your model. Check `session.get_providers()[0]` after install.
+    - onnx>=1.16.0
+    - onnxruntime-gpu>=1.19.0
+    - onnxsim>=0.4.36
+
+    # Optional: structural pruning
+    - torch-pruning>=1.4.0
+
+    # GPS / telemetry
+    - pymavlink>=2.4.40
+
+    # Utilities
+    - tqdm>=4.66.0
+    - pyyaml>=6.0.1
+    - numpy>=1.26.0
+    - matplotlib>=3.8.0
+    - pandas>=2.2.0
+    - scipy>=1.12.0                 # Hungarian assignment in ewads_fusion (multi-view)
+    - ensemble-boxes>=1.0.9         # tests/test_fusion.py only: reference WBF for the parity check
+    - pycocotools>=2.0.7            # tests/test_metrics_vs_coco.py only: reference COCOeval
+    - cryptography>=42              # Ed25519 signed audit-chain head (tools/sign_chain_head.py)
+    - jsonlines>=4.0.0
+
+# Python UTF-8 mode for everything run in this env. Without it, Windows reads
+# text files as cp1252 and the source files' non-ASCII characters break the
+# tests (test_survey, test_hier_eval). Harmless on Linux. Takes effect on the
+# next `conda activate ewads`.
+variables:
+  PYTHONUTF8: "1"
+
+# ─────────────────────────────────────────────────────────────────────────
+# FULL INSTALL SEQUENCE (run in order):
+#
+#   nvidia-smi                                    # confirm driver >= 570.x
+#   conda env create -f environment.yml
+#   conda activate ewads
+#   pip uninstall -y torch torchvision
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+#
+#   python -c "
+#   import torch
+#   print('torch:', torch.__version__)
+#   print('cuda available:', torch.cuda.is_available())
+#   print('capability:', torch.cuda.get_device_capability(0))
+#   x = torch.randn(1024,1024,device='cuda') @ torch.randn(1024,1024,device='cuda')
+#   torch.cuda.synchronize()
+#   print('kernel launch OK')
+#   "
+# ─────────────────────────────────────────────────────────────────────────

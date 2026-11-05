@@ -1,0 +1,10 @@
+{
+  "_note": "Round 3 (2026-10-16). DRAFT from my reading of the 11 sheet_<class>.jpg images -- the user must confirm before --apply. Procedural classes (single_cable, power_supply, plastic_casing, metal_component, hard_drive, cpu_chip, cable_bundle) and Objaverse-reviewed classes (small_appliance, keyboard, crt_monitor, circuit_board). Licence exclusion is round3a_licence_nc.json (already applied), not this file. RUN ON THE WORKSTATION: the models and _review_v3/index.json live there.",
+  "index": "assets/models/_review_v3/index.json",
+  "source_dir": "assets/models",
+  "reject": {
+    "single_cable": [23],
+    "plastic_casing": [33]
+  },
+  "move": []
+}

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+greenpolice_odm_dataset/assets/
+greenpolice_odm_dataset/data/
+greenpolice_odm_dataset/backups/
+*.pt
+*.onnx
+*.engine
+*.zip
+.env

@@ -1,0 +1,8 @@
+{
+  "targets_file": "targets_v2.json",
+  "targets_sha256": "a372e8d5be16a1bb956ff75b5fe0c10de7b6f43761e660911d9f0cd228cf4afe",
+  "taxonomy_sha256": "603a945003b19afbed5e13e074aa1aafc8371ca8f0e7044c2d5f39b006ecead5",
+  "frozen_utc": "2026-10-14T21:18:29.049869+00:00",
+  "frozen_by": "A. Shabbir Ali",
+  "note": "synthetic-only regime; before any training or evaluation"
+}

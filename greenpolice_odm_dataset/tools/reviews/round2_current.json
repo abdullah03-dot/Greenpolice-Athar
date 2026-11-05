@@ -1,0 +1,19 @@
+{
+  "_note": "Round 2 (2026-09-27): all current models re-rendered after the texture-leak fix, incl. 154 new Objaverse-LVIS models.",
+  "index": "assets/models/_review_v2/index.json",
+  "source_dir": "assets/models",
+  "reject": {
+    "battery": [1, 3, 7, 11, 12, 13, 14, 15, 17, 18, 21],
+    "crt_monitor": [1, 10, 22],
+    "flat_screen": [16, 20],
+    "keyboard": [7, 22, 24],
+    "mobile_phone": [6, 20],
+    "printer": [1, 4, 5, 6, 7, 9, 11, 13, 14, 15, 16],
+    "large_appliance": [15, 17, 19],
+    "small_appliance": [1, 13, 14, 22, 25],
+    "lighting": [4, 9, 11, 14, 15, 24]
+  },
+  "move": [["battery", 24, "small_appliance"], ["flat_screen", 2, "crt_monitor"],
+           ["mobile_phone", 9, "small_appliance"], ["large_appliance", 3, "small_appliance"],
+           ["large_appliance", 21, "small_appliance"]]
+}

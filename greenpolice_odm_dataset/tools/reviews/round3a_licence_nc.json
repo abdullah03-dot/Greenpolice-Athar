@@ -1,0 +1,26 @@
+{
+  "_note": "Round 3a (2026-10-08): licence exclusion, not a visual review. The 19 Objaverse models licensed CC BY-NC / CC BY-NC-SA (NonCommercial) are moved to _rejected at the user's instruction, to avoid commercial-use restrictions in a GDRFA / agency context. Licences from the local Objaverse metadata (assets/models/_licences/objaverse_attributions.csv).",
+  "reason": "licence: NonCommercial (CC BY-NC / BY-NC-SA)",
+  "source_dir": "assets/models",
+  "reject_stems": [
+    "1523f756174745a2b1466d1487910433",
+    "1eae55cd80e146be8993d31015804219",
+    "2ab99e3ddd8f4d5299447eda4a8c0ef9",
+    "47d8faa0cab740749c29c5f7f9a1cd83",
+    "60e8241011784f4ba68abdecc2240b7f",
+    "62f1f2436c0c45dc90b7b7d2587a2300",
+    "791fe98b1b29495ab5f65ec144092fe7",
+    "92d4d41e0f1744118a84a04bd4e8c8f8",
+    "a658898eea824f92ad471a0afec24607",
+    "a95eec5181a24bcd8a8452df50b29f3a",
+    "ad021f400ddf44b2a39253e6dc460227",
+    "ae9c8d3ee399448491d1f16d5cda0fac",
+    "b94d5730b0f24c299bf91cf4d7b83345",
+    "ca046b866a2e40ef848877ec56dc0365",
+    "cc7c4ed57dc44576a42e85ca02ce8263",
+    "e3ce5ff8d950442992c6f728c7807cd6",
+    "e99210d90b08411fa55ddfd128977991",
+    "ea309f1873f8452d8d75b92b24fc1e52",
+    "f83cfd9e3edf4b4abab5ca14b0b28ec5"
+  ]
+}
