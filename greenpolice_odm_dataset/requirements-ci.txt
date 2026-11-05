@@ -1,0 +1,13 @@
+# CPU-only test dependencies (GitHub Actions; also fine for a laptop without CUDA).
+# torch / ultralytics / TensorRT tests are marked gpu / needs_torch and skipped in CI.
+numpy>=1.26
+scipy>=1.12
+opencv-python-headless>=4.9
+pillow>=10.0
+pyyaml>=6.0.1
+cryptography>=42
+pycocotools>=2.0.7
+ensemble-boxes>=1.0.9
+tqdm>=4.66
+matplotlib>=3.8
+pytest>=8

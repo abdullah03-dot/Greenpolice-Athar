@@ -1204,3 +1204,17 @@ python tools/dataset_stats.py --extra_render_dirs data/raw/synthetic_valseq data
 - Licence round 3a (`round3a_licence_nc.json`) is already applied: all 19 stems are in `_rejected/`.
 - Not verified: the thumbnails do not show size. Faint single_cable tiles (4, 10, 11, 14, 22, 29, 30, 32, 35) and sparse cable_bundle tiles (3, 24) need a GLB bounding-box check before any decision.
 - The sheets show only models NOT already in review v2 (`--skip_reviewed`), so the counts on the sheets are the new models only. Final class counts = laptop count + the sheet count (e.g. hard_drive 1 + 40, circuit_board 10 + 2).
+
+## 24. 2026-11-05 — ATHAR completion layer (`athar/`, branch `claude/athar-completion`)
+
+Status of the three "designed, not built" parts, and what was added: `../docs/ATHAR_STATUS.md`.
+After an 11 run (sign the head first, as before):
+```bash
+python -m athar.verify <run_dir> --trusted_fingerprint sha256:... --require_signature [--media_root <flight media>]
+python -m athar.dashboard <run_dir> --reviewer "<name>" --trusted_fingerprint sha256:...   # http://127.0.0.1:8765/
+python -m athar.agent draft <run_dir> --reviewer "<name>" --backend ollama --model <local model>   # or --backend stub
+python tools/sign_chain_head.py sign --log <run_dir>/review_decisions.jsonl --private_key <reviewer key, outside repo>
+python -m athar.verify <run_dir> --trusted_fingerprint <evidence key> --review_fingerprint <reviewer key> --require_signature
+```
+Tests: `pytest -m "not gpu and not needs_data and not needs_torch"` (CI: ubuntu + windows, CPU).
+No thresholds, targets or scientific code were changed.
